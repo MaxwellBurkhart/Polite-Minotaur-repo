@@ -7,10 +7,12 @@ var dir1 = 0;
 var six , seven;
 var sound3;
 var paths, walls;
-var player, enemy, enemy2, win, item;
+var player, enemy, enemy2, win, item, sprint, sprintTimer, sprintMaxTime, sprintingSpeed, walkingSpeed;
 var trapName, traps, trap1, trap1x, trap1y, trap2, trap2x, trap2y, trapActive, trapIdle, toggleTrap, trapRange, trap1Range, trap1Rangex, trap1Rangey, trap2Range, trap2Rangex, trap2Rangey;
+var sprintCooldown = false; 
 var trap1Value = 'trapActive';
 var trap2Value = 'trapActive';
+var sprintBar, sprintBarUpdate, sprintBarFiller, sprintBarCooldown;
 
 // define MainMenu state and methods
 var MainMenu = function(game) {};
@@ -41,9 +43,9 @@ MainMenu.prototype = {
 	//create() places main menu assets into game space
 	create: function() {
 
-		let titleText = game.add.text(35, 100, 'The Polite Minotaur', { fontSize: '35px', fill: '#000'}); //title text
-		let IntructionText = game.add.text(30, 230, 'Goal: \n\nInstructions:  \n\n\nPress SPACEBAR to begin.', { fontSize: '16px', fill: '#000'}); //instruction text
-		game.stage.backgroundColor = "#7AD7F0"; //background color
+		let titleText = game.add.text(35, 100, 'The Polite Minotaur', { fontSize: '50px', fill: '#ffffff'}); //title text
+		let IntructionText = game.add.text(30, 230, 'Instructions: Press arrow keys to navigate, \nE to turn off traps, and SHIFT to sprint.\n\n\nPress SPACEBAR to begin.', { fontSize: '20px', fill: '#ffffff'}); //instruction text
+		game.stage.backgroundColor = "#000"; //background color
 
 	},
 
@@ -214,6 +216,10 @@ Playstate.prototype = {
 		player.body.collideWorldBounds = true;
 		game.camera.follow(player);
 
+		//create a timer and timer limit for our player's sprint
+		sprintTimer = 0;
+		sprintMaxTime = 300; 
+
 		//place a enemy into game
 		enemy = game.add.sprite(two, two, 'enemy');
 		game.physics.arcade.enable(enemy); //red person
@@ -227,7 +233,19 @@ Playstate.prototype = {
 		var dir = 0;
 		this.cursors = game.input.keyboard.createCursorKeys();
 
+		//create a sprintBar
+		sprintBar = game.add.text(10, 440, "0000000000", { fontSize: '40px', fill: '#000'});
+		sprintBarUpdate = game.add.text(10, 440, "", { fontSize: '40px', fill: '#00FF00'}); 
+		sprintBarFiller =  game.add.text(10, 440, "", { fontSize: '40px', fill: '#000'});
+		sprintBarCooldown = game.add.text(10, 440, "", { fontSize: '40px', fill: '#FF0000'}); 
+		//fix sprintBar to camera
+ 		sprintBar.fixedToCamera = true;
+ 		sprintBarCooldown.fixedToCamera = true;
+ 		sprintBarFiller.fixedToCamera = true; 
+ 		sprintBarUpdate.fixedToCamera = true;
+
 		game.camera.follow(player);
+
 	},
 
 	//update() runs gameloop
@@ -261,33 +279,132 @@ Playstate.prototype = {
 			dir1 = 0;
 			enemy2.body.velocity.y = 150;
 		}
+		//variables to for adjusting player speed 
+		var walkingSpeed = 300; 
+		var sprintingSpeed = 600;
+
+		//set shift key as sprinting button 
+		sprint = game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
+
+		//sprintTimer counter 
+		if(sprint.isDown && sprintTimer < sprintMaxTime){
+			if (sprintTimer == sprintMaxTime-1){
+				sprintCooldown = true; 
+			}
+			if (sprintTimer == 0){
+				sprintCooldown = false; 
+			}
+			if (sprintCooldown == false){
+				sprintTimer+=5;
+			}else if (sprintTimer > 0 && sprintCooldown == true){
+				sprintTimer-=1; 
+			}
+		}else if (sprintTimer > 0){
+			sprintTimer-=1; 
+		}else{
+
+		}
+		console.log(sprintTimer);
+		console.log(sprintCooldown);
+
+		//sprintbar display
+		if (!sprintCooldown){
+			if (sprintTimer == 0) {
+ 				sprintBarUpdate.setText("");
+			}else if (sprintTimer == 30) {
+ 				sprintBarUpdate.setText("0");
+ 			}else if (sprintTimer == 60) {
+ 				sprintBarUpdate.setText("00");
+ 			}else if (sprintTimer == 90) {
+ 				sprintBarUpdate.setText("000");
+ 			}else if (sprintTimer == 120) {
+ 				sprintBarUpdate.setText("0000");
+ 			}else if (sprintTimer == 150) {
+ 				sprintBarUpdate.setText("00000");
+ 			}else if (sprintTimer == 180) {
+ 				sprintBarUpdate.setText("000000");
+ 			}else if (sprintTimer == 210) {
+ 				sprintBarUpdate.setText("00000000");
+ 			}else if (sprintTimer == 240) {
+ 				sprintBarUpdate.setText("000000000");
+ 			}else if (sprintTimer == 270) {
+ 				sprintBarUpdate.setText("0000000000");
+ 			}else {
+ 			} 
+ 		}else{
+ 			if (sprintTimer == 0) {
+ 				sprintBarCooldown.setText("");
+ 				sprintBarFiller.setText(""); //remove black number background so green nums can show  
+ 				sprintBarUpdate.setText(""); //remove green number background so black nums can show 
+			}else if (sprintTimer == 30) {
+ 				sprintBarCooldown.setText("0");
+ 			}else if (sprintTimer == 60) {
+ 				sprintBarCooldown.setText("00");
+ 			}else if (sprintTimer == 90) {
+ 				sprintBarCooldown.setText("000");
+ 			}else if (sprintTimer == 120) {
+ 				sprintBarCooldown.setText("0000");
+ 			}else if (sprintTimer == 150) {
+ 				sprintBarCooldown.setText("00000");
+ 			}else if (sprintTimer == 180) {
+ 				sprintBarCooldown.setText("000000");
+ 			}else if (sprintTimer == 210) {
+ 				sprintBarCooldown.setText("00000000");
+ 			}else if (sprintTimer == 240) {
+ 				sprintBarCooldown.setText("000000000");
+ 			}else if (sprintTimer == 270) {
+ 				sprintBarCooldown.setText("0000000000");
+ 				sprintBarFiller.setText("0000000000"); //black numbers background
+ 			}else {}
+ 		}
+ 	
 		// all movment for player charecter
 		if (this.cursors.left.isDown)
 		{
 			//  Move to the left
-			player.body.velocity.x = -300;
-			player.animations.play('left');
+			if (sprint.isDown && !sprintCooldown){
+				player.body.velocity.x = -sprintingSpeed;
+				player.animations.play('left');
+			}else{
+				player.body.velocity.x = -walkingSpeed;
+				player.animations.play('left');
+			}
 		}
 		else if (this.cursors.right.isDown)
 		{
 			//  Move to the right
-			player.body.velocity.x = 300;
+			if (sprint.isDown && !sprintCooldown){
+				player.body.velocity.x = sprintingSpeed;
+				player.animations.play('right');
+			}else{
+			player.body.velocity.x = walkingSpeed;
+				player.animations.play('right');
+			}
 
 		}
 		else if (this.cursors.up.isDown)
 		{
-			//  Move to the right
-			player.body.velocity.y = -300;
-
+			//  Move up
+			if (sprint.isDown && !sprintCooldown){
+				player.body.velocity.y = -sprintingSpeed;
+				player.animations.play('down');
+			}else{
+			player.body.velocity.y = -walkingSpeed;
+			player.animations.play('down');
+			}
 		}
 		else if (this.cursors.down.isDown)
 		{
-			//  Move to the right
-			player.body.velocity.y = 300;
+			//  Move down
+			if (sprint.isDown && !sprintCooldown){
+			player.body.velocity.y = sprintingSpeed;
+			player.animations.play('up');
+			}else{
+			player.body.velocity.y = walkingSpeed;	
+			player.animations.play('up');
+			}
 
 		}
-
-
 
 		if(player.x >= six && player.y >= seven){
 			sound3.play();
@@ -329,6 +446,8 @@ GameOver.prototype = {
 	create: function() {
 		game.stage.backgroundColor = "#ffdbe9"; //background color
 		let titleText = game.add.text(35, 35, 'Game Over', { fontSize: '35px', fill: '#000'});
+		trap1Value = 'trapActive'; //reset trap states
+    	trap2Value = 'trapActive';
 	},
 
 
